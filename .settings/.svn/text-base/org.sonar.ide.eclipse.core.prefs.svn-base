@@ -1,0 +1,5 @@
+eclipse.preferences.version=1
+extraProperties=
+projectKey=org.wso2.cep\:customtreansformer
+serverUrl=http\://localhost\:8080/sonar
+version=2
