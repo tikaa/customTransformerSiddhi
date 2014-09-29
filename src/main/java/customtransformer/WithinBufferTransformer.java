@@ -1,5 +1,20 @@
-package customtransformer;
+/*
+ * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+package customtransformer;
 
 import org.apache.log4j.Logger;
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -29,197 +44,178 @@ import java.util.List;
 
 @SiddhiExtension(namespace = "geo", function = "withinbuffertransformer")
 public class WithinBufferTransformer extends TransformProcessor {
-	
+
 	public Geometry[] mybufferList;
-	
-	//public JsonArray jLocCoordinatesArray;
+
+	// public JsonArray jLocCoordinatesArray;
 	public JsonArray jmLocCoordinatesArray;
 	Logger log = Logger.getLogger(WithinBufferTransformer.class);
-	HashMap<String, String[] > test= new HashMap<String, String[] >();
-	
-	double giventime=10.0;
-	double myRadius = 1.0;
-	
-	
+	HashMap<String, String[]> deviceLocMap = new HashMap<String, String[]>();
+
+	double giventime = 10.0; // if user doesnt define give 10 seconds as default
+	double givenRadius = 1.0; // if user doesnot define take 1 meter as default
+
 	int pointLength;
-	
-	
 
 	public void destroy() {
-	    // TODO Auto-generated method stub
-	    
-    }
+		// TODO Auto-generated method stub
+	}
 
 	@Override
-    protected InStream processEvent(InEvent event) {
-		//id,time,longitude,lat,speed, false as speedFlag
+	protected InStream processEvent(InEvent event) {
+		// id,time,longitude,lat,speed, false as speedFlag
 		String withinPoint = "null";
 		Boolean withinState = false;
-		Boolean withinTime = false;	
-		
-		
-		
-		int  id = Integer.parseInt(event.getData0().toString());
+		Boolean withinTime = false;
+
+		int id = Integer.parseInt(event.getData0().toString());
 		String strid = event.getData0().toString();
-        double time = Double.parseDouble(event.getData1().toString());
-        String strtime = event.getData1().toString();
-        double lat = Double.parseDouble(event.getData3().toString());
-        double longitude = Double.parseDouble(event.getData2().toString());
-        double speed = Double.parseDouble(event.getData4().toString());
-       
-        double timediff;
-		
-		
-				int x = 0;
-								
-				
-				GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
-				
-				 
-				Coordinate checkpoint = new Coordinate(lat, longitude);
-				Point cpoint = geometryFactory.createPoint(checkpoint);
-			
-				
+		double time = Double.parseDouble(event.getData1().toString());
+		String strtime = event.getData1().toString();
+		double lat = Double.parseDouble(event.getData3().toString());
+		double longitude = Double.parseDouble(event.getData2().toString());
+		double speed = Double.parseDouble(event.getData4().toString());
 
-				for (x = 0; x < pointLength; x++) { //for each of the buffers drawn 
-					
-					Geometry myBuffer = mybufferList[x];
-					if (cpoint.within(myBuffer)) {	//check whether the point is within					
-						withinState = true;
-						
-						JsonObject jmObject = (JsonObject) jmLocCoordinatesArray.get(x);
-						JsonObject mgeometryObject= jmObject.getAsJsonObject("geometry");						
-						JsonArray coordArray = mgeometryObject.getAsJsonArray("coordinates");						
-						withinPoint = coordArray.get(0).toString() +"," + coordArray.get(1).toString();// the point for which the stationary condition became true
-						
-						//put it into Hashmap as the latest within true event for the id if hashmap doesnt contain that id already
-						if(test.containsKey(strid)==false || test.containsKey(strid)==true && test.get(strid)[1].equalsIgnoreCase(myBuffer.toString())==false ){
-							String[] myarray = {strtime,myBuffer.toString() };
-							test.put(strid, myarray);
-						}
-						else {
-							timediff = time- Double.parseDouble(test.get(strid)[0]);
-							//test.remove(strid);
-							if (timediff>= giventime){ withinTime = true;}
-						}
+		double timediff;
+
+		int x = 0;
+
+		GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+
+		Coordinate checkpoint = new Coordinate(lat, longitude);
+		Point cpoint = geometryFactory.createPoint(checkpoint);
+
+		for (x = 0; x < pointLength; x++) { // for each of the buffers drawn
+
+			Geometry myBuffer = mybufferList[x];
+			if (cpoint.within(myBuffer)) { // check whether the point is within
+				withinState = true;
+
+				JsonObject jmObject = (JsonObject) jmLocCoordinatesArray.get(x);
+				JsonObject mgeometryObject = jmObject
+						.getAsJsonObject("geometry");
+				JsonArray coordArray = mgeometryObject
+						.getAsJsonArray("coordinates");
+				withinPoint = coordArray.get(0).toString() + ","
+						+ coordArray.get(1).toString();// the point for which
+														// the stationary
+														// condition became true
+
+				/*put it into Hashmap as the latest within true event for the
+				 id if hashmap doesnt contain that id already*/
+				if (deviceLocMap.containsKey(strid) == false
+						|| deviceLocMap.containsKey(strid) == true
+						&& deviceLocMap.get(strid)[1].equalsIgnoreCase(myBuffer
+								.toString()) == false) {
+					String[] myarray = { strtime, myBuffer.toString() };
+					deviceLocMap.put(strid, myarray);
+				} else {
+					timediff = time - Double.parseDouble(deviceLocMap.get(strid)[0]);
+					// test.remove(strid);
+					if (timediff >= giventime) {
+						withinTime = true;
 					}
-					else{
-						if(test.containsKey(strid)==true){							
-							test.remove(strid);
-						}
-					}
-						
-						
-						//on false check if a true exists in the hashmap already and if so get the time difference and remove the one from the hashmap
-						//, otherwise do nothing
 				}
-				
-				
-				 Object[] data = new Object[]{
-				      id,
-				      time,
-				      lat,
-				      longitude,
-				      speed,
-				      false,
-				      withinState,
-				      withinPoint,
-				      withinTime
-				 };
-				
-				
-				return new InEvent(event.getStreamId(), System.currentTimeMillis(), data);	
-	  
-    }
+			} else {
+				if (deviceLocMap.containsKey(strid) == true) {
+					deviceLocMap.remove(strid);
+				}
+			}
+			// on false check if a true exists in the hashmap already and if so
+			// get the time difference and remove the one from the hashmap
+			// , otherwise do nothing
+		}
+		Object[] data = new Object[] { id, time, lat, longitude, speed, false,
+				withinState, withinPoint, withinTime };
+		return new InEvent(event.getStreamId(), System.currentTimeMillis(),
+				data);
+	}
 
 	@Override
-    protected InStream processEvent(InListEvent listEvent) {
-		
-		
-	    // TODO Auto-generated method stub
-	    return null;
-    }
+	protected InStream processEvent(InListEvent listEvent) {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	@Override
-    protected Object[] currentState() {
-	    // TODO Auto-generated method stub
-	    return null;
-    }
+	protected Object[] currentState() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	@Override
-    protected void restoreState(Object[] data) {
-	    // TODO Auto-generated method stub
-	    
-    }
+	protected void restoreState(Object[] data) {
+		// TODO Auto-generated method stub
+
+	}
 
 	@Override
-    protected void init(Expression[] parameters, List<ExpressionExecutor> expressionExecutors,
-                        StreamDefinition inStreamDefinition, StreamDefinition outStreamDefinition,
-                        String elementId, SiddhiContext siddhiContext) {		
-		
+	protected void init(Expression[] parameters,
+			List<ExpressionExecutor> expressionExecutors,
+			StreamDefinition inStreamDefinition,
+			StreamDefinition outStreamDefinition, String elementId,
+			SiddhiContext siddhiContext) {
+       //initiating at the beginning to avoid overhead 
 		ArrayList<Object> paramList = new ArrayList<Object>();
-		for (int i = 0, size = expressionExecutors.size(); i < size; i++) {
-			paramList.add(expressionExecutors.get(i).execute(null));
-		}//[{'features':[{ 'type': 'Feature', 'properties':{},'geometry':{'type': 'Point', 'coordinates': [  79.94248329162588,6.844997820293952] }},{ 'type': 'Feature', 'properties':{},'geometry':{'type': 'Point', 'coordinates': [  79.94248329162588,6.844997820293952] }}]}]
 		
-		//creating the bufferpoints
+		for (int i = 0, size = expressionExecutors.size(); i < size; i++) {
+			paramList.add(expressionExecutors.get(i).execute(null)); //access the data from the stream for processing
+		}
+		// creating the buffer points
 		GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
 		String mystring = paramList.get(0).toString();
-		
-		if(paramList.get(1)!=null){
-			
-				giventime = (Double) paramList.get(1);
-		        myRadius = (Double) paramList.get(2)/110574.61087757687; //to convert into latitudes since the calculations are done in geo space
-		        
-				}
-		
-		JsonElement mcoordinateArray = new JsonParser().parse(mystring); 
-		JsonObject jmObject = mcoordinateArray.getAsJsonObject();
-		
-		jmLocCoordinatesArray = jmObject.getAsJsonArray("features"); 
-		pointLength= jmLocCoordinatesArray.size();
-		mybufferList = new Geometry[jmLocCoordinatesArray.size()];
-		
-		for (int i = 0; i < pointLength; i++) {
-			
-		//getting the geometry feature
-		
-		JsonObject jObject = (JsonObject) jmLocCoordinatesArray.get(i);
-		
-		JsonObject geometryObject= jObject.getAsJsonObject("geometry");
-			
-			
-				JsonArray coordArray = geometryObject.getAsJsonArray("coordinates");
-				
-				double lattitude = Double.parseDouble(coordArray.get(0).toString());
-				double longitude = Double.parseDouble(coordArray.get(1).toString());
-				//inserting for passing to UI
-				
-				
-				Coordinate coord = new Coordinate(lattitude, longitude);
-				Point point = geometryFactory.createPoint(coord); // crewate the points for GeoJSON file points
 
-				Geometry buffer = point.buffer(myRadius); //draw the buffer
-				mybufferList[i] = buffer; // put it into the list
-			}
-		
-		
-		//defining the output Stream
-		
+		if (paramList.get(1) != null) {
+			giventime = (Double) paramList.get(1);
+			givenRadius = (Double) paramList.get(2) / 110574.61087757687; // to
+			// convert into latitudes since the calculations are done in geo-space
+		}
+
+		JsonElement mcoordinateArray = new JsonParser().parse(mystring);
+		JsonObject jmObject = mcoordinateArray.getAsJsonObject();
+
+		jmLocCoordinatesArray = jmObject.getAsJsonArray("features");
+		pointLength = jmLocCoordinatesArray.size();
+		mybufferList = new Geometry[jmLocCoordinatesArray.size()];
+
+		for (int i = 0; i < pointLength; i++) {
+
+			// getting the geometry feature
+			JsonObject jObject = (JsonObject) jmLocCoordinatesArray.get(i);
+
+			JsonObject geometryObject = jObject.getAsJsonObject("geometry");
+
+			JsonArray coordArray = geometryObject.getAsJsonArray("coordinates");
+
+			double lattitude = Double.parseDouble(coordArray.get(0).toString());
+			double longitude = Double.parseDouble(coordArray.get(1).toString());
+			// inserting for passing to UI
+
+			Coordinate coord = new Coordinate(lattitude, longitude);
+			Point point = geometryFactory.createPoint(coord); // create the
+																// points for
+																// GeoJSON file
+																// points
+
+			Geometry buffer = point.buffer(givenRadius); // draw the buffer
+			mybufferList[i] = buffer; // put it into the list
+		}
+
+		// defining the output Stream
 		this.outStreamDefinition = new StreamDefinition().name("outputStream")
 				.attribute("id", Attribute.Type.INT)
 				.attribute("time", Attribute.Type.DOUBLE)
 				.attribute("longitude", Attribute.Type.DOUBLE)
-                .attribute("lat", Attribute.Type.DOUBLE)
-                .attribute("speed", Attribute.Type.DOUBLE)
-                .attribute("speedFlag", Attribute.Type.BOOL)
-                .attribute("withinFlag", Attribute.Type.BOOL) //if the device is within the buffer
-                .attribute("withinPoint", Attribute.Type.STRING)//the point 
-                .attribute("withinTime", Attribute.Type.BOOL);
-				
-		
-	    // TODO Auto-generated method stub
-	    
-    }
+				.attribute("lat", Attribute.Type.DOUBLE)
+				.attribute("speed", Attribute.Type.DOUBLE)
+				.attribute("speedFlag", Attribute.Type.BOOL)
+				.attribute("withinFlag", Attribute.Type.BOOL) // if the device
+																// is within the
+																// buffer
+				.attribute("withinPoint", Attribute.Type.STRING)// the point
+				.attribute("withinTime", Attribute.Type.BOOL);
+
+	}
 
 }
