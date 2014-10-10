@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package customtransformer;
+package org.wso2.siddhiextension;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.wso2.siddhi.core.config.SiddhiContext;
