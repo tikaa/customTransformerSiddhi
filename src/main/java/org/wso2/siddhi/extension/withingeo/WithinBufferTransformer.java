@@ -44,7 +44,7 @@ import java.util.List;
 @SiddhiExtension(namespace = "geo", function = "withinbuffertransformer")
 public class WithinBufferTransformer extends TransformProcessor {
 
-	private static final int paramThree = 2; //indexes for accessing param list
+	private static final int paramThree = 2; // indexes for accessing param list
 	private static final int paramTwo = 1;
 	private static final int paramOne = 0;
 	private static final String COORDINATES = "coordinates";
@@ -75,7 +75,8 @@ public class WithinBufferTransformer extends TransformProcessor {
 	protected InStream processEvent(InEvent event) {
 		// id,time,longitude,lat,speed, false as speedFlag
 		String withinPoint = "null";
-		//this assignment was done purposely since if not assigned needs to remain as string null
+		// this assignment was done purposely since if not assigned needs to
+		// remain as string null
 		boolean withinState = false;
 		boolean withinTime = false;
 		int id = Integer.parseInt(event.getData0().toString());
@@ -90,21 +91,23 @@ public class WithinBufferTransformer extends TransformProcessor {
 		GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
 		Coordinate checkCoord = new Coordinate(lat, longitude);
 		Point checkPoint = geometryFactory.createPoint(checkCoord);
-		for (buffers = 0; buffers < pointLength; buffers++) { 
+		for (buffers = 0; buffers < pointLength; buffers++) {
 			// for each of the buffers drawn
 			Geometry currBuffer = bufferList[buffers];
-			if (checkPoint.within(currBuffer)) { 
+			if (checkPoint.within(currBuffer)) {
 				// check whether the point is within
 				withinState = true;
 				JsonObject jmObject = (JsonObject) jmLocCoordinatesArray.get(buffers);
 				JsonObject tempJmObject = jmObject.getAsJsonObject(GEOMETRY);
 				JsonArray coordArray = tempJmObject.getAsJsonArray(COORDINATES);
 				withinPoint = coordArray.get(0).toString() + "," + coordArray.get(1).toString();
-				/* put it into Hashmap as the latest within true event for the
-				 * id if hashmap doesnt contain that id already */				
-				if (deviceLocMap.containsKey(strid) == false ||
-				    deviceLocMap.containsKey(strid) == true &&
-				    deviceLocMap.get(strid)[1].equalsIgnoreCase(currBuffer.toString()) == false) {
+				/*
+				 * put it into Hashmap as the latest within true event for the
+				 * id if hashmap doesnt contain that id already
+				 */
+				if (deviceLocMap.containsKey(strid) == false
+						|| deviceLocMap.containsKey(strid) == true
+						&& deviceLocMap.get(strid)[1].equalsIgnoreCase(currBuffer.toString()) == false) {
 					String[] currArray = { strTime, currBuffer.toString() };
 					deviceLocMap.put(strid, currArray);
 				} else {
@@ -118,41 +121,35 @@ public class WithinBufferTransformer extends TransformProcessor {
 					deviceLocMap.remove(strid);
 				}
 			}
-			// on false check if a true exists in the hashmap already and if so
-			// get the time difference and remove the one from the hashmap
-			// , otherwise do nothing
 		}
 		Object[] data = new Object[] { id, time, lat, longitude, speed, false, withinState,
-		                              withinPoint, withinTime };
+				withinPoint, withinTime };
 		return new InEvent(event.getStreamId(), System.currentTimeMillis(), data);
 	}
 
 	@Override
 	protected InStream processEvent(InListEvent listEvent) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	protected Object[] currentState() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	protected void restoreState(Object[] data) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override
 	protected void init(Expression[] parameters, List<ExpressionExecutor> expressionExecutors,
-	                    StreamDefinition inStreamDefinition, StreamDefinition outStreamDefinition,
-	                    String elementId, SiddhiContext siddhiContext) {
+			StreamDefinition inStreamDefinition, StreamDefinition outStreamDefinition,
+			String elementId, SiddhiContext siddhiContext) {
 		// initiating at the beginning to avoid overhead
 		ArrayList<Object> paramList = new ArrayList<Object>();
-		//access data from stream for processing
+		// access data from stream for processing
 		for (int i = 0, size = expressionExecutors.size(); i < size; i++) {
-			paramList.add(expressionExecutors.get(i).execute(null)); 
+			paramList.add(expressionExecutors.get(i).execute(null));
 		}
 		// creating the buffer points
 		GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
@@ -183,15 +180,13 @@ public class WithinBufferTransformer extends TransformProcessor {
 		}
 		// defining the output Stream
 		this.outStreamDefinition = new StreamDefinition().name(OUTPUT_STREAM)
-		                                                 .attribute(ID, Attribute.Type.INT)
-		                                                 .attribute(TIME, Attribute.Type.DOUBLE)
-		                                                 .attribute(LONGITUDE, Attribute.Type.DOUBLE)
-		                                                 .attribute(LATITUDE, Attribute.Type.DOUBLE)
-		                                                 .attribute(SPEED, Attribute.Type.DOUBLE)
-		                                                 .attribute(SPEED_FLAG, Attribute.Type.BOOL)
-		                                                 .attribute(WITHIN_FLAG, Attribute.Type.BOOL)
-		                                                 .attribute(WITHIN_POINT, Attribute.Type.STRING)
-		                                                 .attribute(WITHIN_TIME, Attribute.Type.BOOL);
+				.attribute(ID, Attribute.Type.INT).attribute(TIME, Attribute.Type.DOUBLE)
+				.attribute(LONGITUDE, Attribute.Type.DOUBLE)
+				.attribute(LATITUDE, Attribute.Type.DOUBLE).attribute(SPEED, Attribute.Type.DOUBLE)
+				.attribute(SPEED_FLAG, Attribute.Type.BOOL)
+				.attribute(WITHIN_FLAG, Attribute.Type.BOOL)
+				.attribute(WITHIN_POINT, Attribute.Type.STRING)
+				.attribute(WITHIN_TIME, Attribute.Type.BOOL);
 
 	}
 
