@@ -69,7 +69,6 @@ public class WithinBufferTransformer extends TransformProcessor {
 	private int pointLength = 0;
 
 	public void destroy() {
-		// TODO Auto-generated method stub
 	}
 
 	@Override
