@@ -25,6 +25,7 @@ import org.wso2.siddhi.core.event.Event;
 import org.wso2.siddhi.core.query.output.callback.QueryCallback;
 import org.wso2.siddhi.core.stream.input.InputHandler;
 import org.wso2.siddhi.core.util.EventPrinter;
+
 //this is a test class to test the extension
 public class WithinBufferTest {
 
@@ -38,17 +39,19 @@ public class WithinBufferTest {
 		SiddhiManager siddhiManager = new SiddhiManager();
 		siddhiManager.getSiddhiContext().setSiddhiExtensions(classList);
 		siddhiManager.defineStream("define stream cseEventStream (id int, time double, lattitude double, longitude double, speed double ) ");
-		// format of the data being sent
-		// {'geometries':[{ 'type': 'Point', 'coordinates': [100.5, 0.5] },{
-		// 'type': 'Point', 'coordinates': [100.5, 0.5] }]}
-		// {"geometries":[{"type":"Point","coordinates":[
-		// 79.94248329162588,6.844997820293952]},{"type":"Point","coordinates":[100.0,0.0]}]}
-		String queryReference =
-		                        siddhiManager.addQuery("from "
-		                                               + "cseEventStream#transform.geo:withinbuffertransformer(\"" +
-		                                               "{'features':[{ 'type': 'Feature', 'properties':{},'geometry':{'type': 'Point', 'coordinates': " +
-		                                               "[  79.94248329162588,6.844997820293952] }}]}\") as tt "
-		                                               + "insert into StockQuote;");
+		/*
+		 * format of the data being sent {'geometries':[{ 'type': 'Point',
+		 * 'coordinates': [100.5, 0.5] },{ 'type': 'Point', 'coordinates':
+		 * [100.5, 0.5] }]} {"geometries":[{"type":"Point","coordinates":[
+		 * 79.94248329162588
+		 * ,6.844997820293952]},{"type":"Point","coordinates":[100.0,0.0]}]}
+		 */
+		String queryReference = siddhiManager
+				.addQuery("from "
+						+ "cseEventStream#transform.geo:withinbuffertransformer(\""
+						+ "{'features':[{ 'type': 'Feature', 'properties':{},'geometry':{'type': 'Point', 'coordinates': "
+						+ "[  79.94248329162588,6.844997820293952] }}]}\") as tt "
+						+ "insert into StockQuote;");
 		siddhiManager.addCallback(queryReference, new QueryCallback() {
 			@Override
 			public void receive(long timeStamp, Event[] inEvents, Event[] removeEvents) {
