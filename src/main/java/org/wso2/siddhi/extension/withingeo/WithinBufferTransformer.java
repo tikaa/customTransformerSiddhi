@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package src.main.java.org.wso2.siddhi.extension.withingeo;
+package org.wso2.siddhi.extension.withingeo;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.wso2.siddhi.core.config.SiddhiContext;
@@ -75,12 +75,14 @@ public class WithinBufferTransformer extends TransformProcessor {
 	protected InStream processEvent(InEvent event) {
 		// id,time,longitude,lat,speed, false as speedFlag
 		String withinPoint = "null";
-		// this assignment was done purposely since if not assigned needs to
-		// remain as string null
+		/*
+		 * this assignment was done purposely since if not assigned needs to
+		 * remain as string null
+		 */
 		boolean withinState = false;
 		boolean withinTime = false;
 		int id = Integer.parseInt(event.getData0().toString());
-		String strid = event.getData0().toString();
+		String strId = event.getData0().toString();
 		double time = Double.parseDouble(event.getData1().toString());
 		String strTime = event.getData1().toString();
 		double lat = Double.parseDouble(event.getData3().toString());
@@ -105,20 +107,20 @@ public class WithinBufferTransformer extends TransformProcessor {
 				 * put it into Hashmap as the latest within true event for the
 				 * id if hashmap doesnt contain that id already
 				 */
-				if (deviceLocMap.containsKey(strid) == false
-						|| deviceLocMap.containsKey(strid) == true
-						&& deviceLocMap.get(strid)[1].equalsIgnoreCase(currBuffer.toString()) == false) {
+				if (deviceLocMap.containsKey(strId) == false
+						|| deviceLocMap.containsKey(strId) == true
+						&& deviceLocMap.get(strId)[1].equalsIgnoreCase(currBuffer.toString()) == false) {
 					String[] currArray = { strTime, currBuffer.toString() };
-					deviceLocMap.put(strid, currArray);
+					deviceLocMap.put(strId, currArray);
 				} else {
-					timeDiff = time - Double.parseDouble(deviceLocMap.get(strid)[0]);
+					timeDiff = time - Double.parseDouble(deviceLocMap.get(strId)[0]);
 					if (timeDiff >= giventime) {
 						withinTime = true;
 					}
 				}
 			} else {
-				if (deviceLocMap.containsKey(strid) == true) {
-					deviceLocMap.remove(strid);
+				if (deviceLocMap.containsKey(strId) == true) {
+					deviceLocMap.remove(strId);
 				}
 			}
 		}
