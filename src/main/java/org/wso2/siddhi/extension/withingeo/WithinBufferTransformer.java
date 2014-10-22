@@ -162,9 +162,11 @@ public class WithinBufferTransformer extends TransformProcessor {
 		String coordString = paramList.get(paramOne).toString();
 		if (paramList.get(1) != null) {
 			giventime = (Double) paramList.get(paramTwo);
-			givenRadius = (Double) paramList.get(paramThree) / DEGREES_TO_METERS_CONVERSION_CONSTANT; // to
-			// convert into latitudes since the calculations are done in
-			// geo-space
+			/*
+			 *  to convert into latitude degrees from metric measurements since the calculations are done in
+			 *  geo-space 
+			 */
+			givenRadius = (Double) paramList.get(paramThree) / DEGREES_TO_METERS_CONVERSION_CONSTANT; 
 		}
 		JsonElement mcoordinateArray = new JsonParser().parse(coordString);
 		JsonObject jmObject = mcoordinateArray.getAsJsonObject();
