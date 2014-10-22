@@ -44,6 +44,10 @@ import java.util.List;
 @SiddhiExtension(namespace = "geo", function = "withinbuffertransformer")
 public class WithinBufferTransformer extends TransformProcessor {
 
+	/**
+	 * 
+	 */
+	private static final double DEGREES_TO_METERS_CONVERSION_CONSTANT = 110574.61087757687;
 	private static final int paramThree = 2; // indexes for accessing param list
 	private static final int paramTwo = 1;
 	private static final int paramOne = 0;
@@ -158,7 +162,7 @@ public class WithinBufferTransformer extends TransformProcessor {
 		String coordString = paramList.get(paramOne).toString();
 		if (paramList.get(1) != null) {
 			giventime = (Double) paramList.get(paramTwo);
-			givenRadius = (Double) paramList.get(paramThree) / 110574.61087757687; // to
+			givenRadius = (Double) paramList.get(paramThree) / DEGREES_TO_METERS_CONVERSION_CONSTANT; // to
 			// convert into latitudes since the calculations are done in
 			// geo-space
 		}
