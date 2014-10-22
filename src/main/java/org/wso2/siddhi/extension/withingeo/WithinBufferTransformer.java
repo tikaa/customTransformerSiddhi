@@ -173,9 +173,10 @@ public class WithinBufferTransformer extends TransformProcessor {
 		jmLocCoordinatesArray = jmObject.getAsJsonArray(FEATURES);
 		pointLength = jmLocCoordinatesArray.size();
 		bufferList = new Geometry[jmLocCoordinatesArray.size()];
-		for (int i = 0; i < pointLength; i++) {
-			// getting the geometry feature
-			JsonObject jObject = (JsonObject) jmLocCoordinatesArray.get(i);
+		int elemNo = 0;
+		for (JsonElement jmLocElem : jmLocCoordinatesArray) {
+			// getting the geometry feature			
+			JsonObject jObject = (JsonObject) jmLocElem;
 			JsonObject geometryObject = jObject.getAsJsonObject(GEOMETRY);
 			JsonArray coordArray = geometryObject.getAsJsonArray(COORDINATES);
 			double lattitude = Double.parseDouble(coordArray.get(0).toString());
@@ -184,7 +185,8 @@ public class WithinBufferTransformer extends TransformProcessor {
 			Coordinate coord = new Coordinate(lattitude, longitude);
 			Point point = geometryFactory.createPoint(coord);
 			Geometry buffer = point.buffer(givenRadius); // draw the buffer
-			bufferList[i] = buffer; // put it into the list
+			bufferList[elemNo] = buffer; // put it into the list
+			elemNo++;
 		}
 		// defining the output Stream
 		this.outStreamDefinition = new StreamDefinition().name(OUTPUT_STREAM)
