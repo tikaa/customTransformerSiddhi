@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package customtransformer;
+package org.wso2.siddhi.extension.geobuffer;
 
 import java.util.ArrayList;
 import java.util.List;
