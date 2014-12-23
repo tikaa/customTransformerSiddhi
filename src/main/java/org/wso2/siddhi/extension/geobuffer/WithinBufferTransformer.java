@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.siddhi.extension.withingeo;
+package org.wso2.siddhi.extension.geobuffer;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.wso2.siddhi.core.config.SiddhiContext;
